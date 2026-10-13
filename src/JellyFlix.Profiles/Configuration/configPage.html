@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JellyFlix Profiles</title>
+</head>
+<body>
+    <div id="JellyFlixProfilesConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="JellyFlixProfilesConfigForm">
+                    <p>
+                        Each profile is a hidden Jellyfin user that can only be reached through its household's login,
+                        so watch history, Continue Watching and parental controls are tracked per profile.
+                    </p>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="MaxProfilesPerHousehold" type="number" min="1" max="20" label="Maximum profiles per household (including the owner)" />
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="KidsMaxParentalRating" type="number" min="0" max="1000" label="Highest parental rating score for kids profiles" />
+                        <div class="fieldDescription">10 is PG / TV-PG in the US rating system. Unrated items are always hidden from kids profiles.</div>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label>
+                            <input is="emby-checkbox" type="checkbox" id="AllowNonAdminOwners" />
+                            <span>Allow non-administrator accounts to create profiles</span>
+                        </label>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script type="text/javascript">
+            (function () {
+                var pluginId = '7b06ba47-197e-4e62-8582-e23a1eb25e2d';
+                var page = document.querySelector('#JellyFlixProfilesConfigPage');
+
+                page.addEventListener('pageshow', function () {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                        page.querySelector('#MaxProfilesPerHousehold').value = config.MaxProfilesPerHousehold;
+                        page.querySelector('#KidsMaxParentalRating').value = config.KidsMaxParentalRating;
+                        page.querySelector('#AllowNonAdminOwners').checked = config.AllowNonAdminOwners;
+                        Dashboard.hideLoadingMsg();
+                    });
+                });
+
+                page.querySelector('#JellyFlixProfilesConfigForm').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                        config.MaxProfilesPerHousehold = parseInt(page.querySelector('#MaxProfilesPerHousehold').value, 10);
+                        config.KidsMaxParentalRating = parseInt(page.querySelector('#KidsMaxParentalRating').value, 10);
+                        config.AllowNonAdminOwners = page.querySelector('#AllowNonAdminOwners').checked;
+                        ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
+                    });
+                    return false;
+                });
+            })();
+        </script>
+    </div>
+</body>
+</html>
